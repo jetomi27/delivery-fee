@@ -1,4 +1,4 @@
-package com.example.delivery_fee;
+package deliveryfee;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,4 +1,4 @@
-package com.example.delivery_fee;
+package deliveryfee;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
