@@ -1,0 +1,78 @@
+package deliveryfee.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.Instant;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+/**
+ * Weather based extra fee rule for a vehicle type, valid during a period of time
+ * Temperature and wind rules use a value range, phenomenon rules use a category
+ */
+@Entity
+@Table(name = "extra_fee_rule")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class ExtraFeeRule {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ExtraFeeType type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private VehicleType vehicleType;
+
+    // Range bounds for temperature and wind rules, null means unbounded
+    private Double minValue;
+    private boolean minInclusive;
+    private Double maxValue;
+    private boolean maxInclusive;
+
+    // Category for weather phenomenon rules
+    @Enumerated(EnumType.STRING)
+    private PhenomenonCategory phenomenonCategory;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal fee;
+
+    @Column(nullable = false)
+    private boolean forbidden;
+
+    @Column(nullable = false)
+    private Instant validFrom;
+
+    private Instant validTo;
+
+    @Builder
+    public ExtraFeeRule(ExtraFeeType type, VehicleType vehicleType,
+                        Double minValue, boolean minInclusive,
+                        Double maxValue, boolean maxInclusive,
+                        PhenomenonCategory phenomenonCategory,
+                        BigDecimal fee, boolean forbidden, Instant validFrom) {
+        this.type = type;
+        this.vehicleType = vehicleType;
+        this.minValue = minValue;
+        this.minInclusive = minInclusive;
+        this.maxValue = maxValue;
+        this.maxInclusive = maxInclusive;
+        this.phenomenonCategory = phenomenonCategory;
+        this.fee = fee;
+        this.forbidden = forbidden;
+        this.validFrom = validFrom;
+    }
+}
