@@ -75,4 +75,14 @@ public class ExtraFeeRule {
         this.forbidden = forbidden;
         this.validFrom = validFrom;
     }
+
+    /**
+    * Ends the validity of this rule. Used when the rule is replaced or deleted,
+    * so that calculations for earlier times still find it.
+    *
+    * @param time moment from which the rule is no longer valid
+    */
+    public void expire(Instant time) {
+        this.validTo = time;
+    }
 }
