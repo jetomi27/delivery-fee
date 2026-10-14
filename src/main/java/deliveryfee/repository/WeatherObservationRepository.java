@@ -13,4 +13,7 @@ public interface WeatherObservationRepository extends JpaRepository<WeatherObser
     // returns the most recent observation for the given station at or before the given time
     Optional<WeatherObservation> findFirstByStationNameAndObservedAtLessThanEqualOrderByObservedAtDesc(
             String stationName, Instant time);
+
+    /** Checks whether an observation for the given station and time is already stored. */
+    boolean existsByStationNameAndObservedAt(String stationName, Instant observedAt);
 }
