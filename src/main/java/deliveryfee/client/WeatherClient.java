@@ -44,6 +44,13 @@ public class WeatherClient {
         return parse(xml);
     }
 
+    /**
+    * Parses the observations XML into DTOs.
+    *
+    * @param xml raw XML returned by the weather service
+    * @return parsed observations with timestamp and stations
+    * @throws WeatherDataFetchException if the XML is empty, malformed or has no timestamp
+    */
     WeatherObservationsXml parse(String xml) {
         if (xml == null || xml.isBlank()) {
             throw new WeatherDataFetchException("Weather service returned an empty response", null);

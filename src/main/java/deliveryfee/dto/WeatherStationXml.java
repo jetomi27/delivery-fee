@@ -8,8 +8,8 @@ import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 
 /**
-* Single station entry from the Estonian Environment Agency observations XML.
-* Values are kept as raw strings because the feed often contains empty elements.
+* Single station entry from the Estonian Environment Agency observations XML
+* Values are kept as raw strings because the feed often contains empty elements
 */
 @Getter
 @Setter

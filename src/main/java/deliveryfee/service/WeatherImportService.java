@@ -31,7 +31,6 @@ public class WeatherImportService {
 
     /**
      * Downloads current observations and saves new entries for the stations of supported cities.
-     * Existing entries are never overwritten.
      *
      * @return saved observations
      */

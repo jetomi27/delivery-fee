@@ -12,7 +12,7 @@ import tools.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
-* Root element of the observations XML: one timestamp and a list of stations.
+* Root element of the observations XML: one timestamp and a list of stations
 */
 @Getter
 @Setter
