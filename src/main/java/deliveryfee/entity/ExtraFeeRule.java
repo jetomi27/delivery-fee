@@ -85,4 +85,34 @@ public class ExtraFeeRule {
     public void expire(Instant time) {
         this.validTo = time;
     }
+
+    /**
+    * Checks whether this rule applies to the given weather observation.
+    * Temperature and wind rules compare the measured value with the range,
+    * phenomenon rules compare the phenomenon category.
+    * A missing value never matches.
+    *
+    * @param weather weather observation of the city
+    * @return true if the rule applies
+    */
+    public boolean appliesTo(WeatherObservation weather) {
+        return switch (type) {
+            case AIR_TEMPERATURE -> isInRange(weather.getAirTemperature());
+            case WIND_SPEED -> isInRange(weather.getWindSpeed());
+            case WEATHER_PHENOMENON -> PhenomenonCategory.fromPhenomenon(weather.getPhenomenon())
+                    .map(category -> category == phenomenonCategory)
+                    .orElse(false);
+        };
+    }
+
+    private boolean isInRange(Double value) {
+        if (value == null) {
+            return false;
+        }
+        boolean aboveMin = minValue == null
+                || (minInclusive ? value >= minValue : value > minValue);
+        boolean belowMax = maxValue == null
+                || (maxInclusive ? value <= maxValue : value < maxValue);
+        return aboveMin && belowMax;
+    }
 }
