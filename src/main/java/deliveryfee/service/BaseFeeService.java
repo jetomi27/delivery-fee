@@ -78,6 +78,23 @@ public class BaseFeeService {
     }
 
     /**
+     * Ends the validity of a current base fee. The fee stays in the database.
+     *
+     * @param id id of the current base fee
+     * @throws ResourceNotFoundException if there is no base fee with this id
+     * @throws ConflictException if the base fee is already expired
+     */
+    @Transactional
+    public void delete(Long id) {
+        BaseFee current = findEntity(id);
+        if (!current.isCurrent()) {
+            throw new ConflictException("Base fee with id " + id + " is already expired");
+        }
+        current.expire(Instant.now());
+        baseFeeRepository.save(current);
+    }
+
+    /**
      * Returns a base fee by id, including expired versions.
      *
      * @param id base fee id

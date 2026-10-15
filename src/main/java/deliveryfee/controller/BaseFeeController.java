@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -104,5 +105,25 @@ public class BaseFeeController {
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public BaseFeeResponse update(@PathVariable Long id, @Valid @RequestBody BaseFeeUpdateRequest request) {
         return baseFeeService.update(id, request);
+    }
+
+    /**
+     * Ends the validity of a current base fee.
+     *
+     * @param id id of the current base fee
+     */
+    @Operation(summary = "Delete base fee",
+            description = "Expires the fee instead of removing it, so calculations "
+                    + "for earlier times are not affected. Fee calculation for this city "
+                    + "and vehicle type will return 404 until a new fee is created.")
+    @ApiResponse(responseCode = "204", description = "Base fee expired")
+    @ApiResponse(responseCode = "404", description = "Base fee not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Base fee is already expired",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        baseFeeService.delete(id);
     }
 }
