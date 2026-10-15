@@ -2,6 +2,7 @@ package deliveryfee.controller;
 
 import deliveryfee.dto.BaseFeeRequest;
 import deliveryfee.dto.BaseFeeResponse;
+import deliveryfee.dto.BaseFeeUpdateRequest;
 import deliveryfee.dto.ErrorResponse;
 import deliveryfee.service.BaseFeeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -80,5 +82,27 @@ public class BaseFeeController {
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public BaseFeeResponse create(@Valid @RequestBody BaseFeeRequest request) {
         return baseFeeService.create(request);
+    }
+
+    /**
+     * Changes the amount of a current base fee.
+     *
+     * @param id id of the current base fee
+     * @param request new amount
+     * @return new version of the base fee
+     */
+    @Operation(summary = "Change base fee",
+            description = "Expires the current fee and creates a new version with the new amount. "
+                    + "The response contains the new version with a new id.")
+    @ApiResponse(responseCode = "200", description = "Base fee changed")
+    @ApiResponse(responseCode = "400", description = "Invalid request body",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Base fee not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Base fee is expired",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public BaseFeeResponse update(@PathVariable Long id, @Valid @RequestBody BaseFeeUpdateRequest request) {
+        return baseFeeService.update(id, request);
     }
 }

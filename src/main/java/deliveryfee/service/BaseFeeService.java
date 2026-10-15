@@ -2,6 +2,7 @@ package deliveryfee.service;
 
 import deliveryfee.dto.BaseFeeRequest;
 import deliveryfee.dto.BaseFeeResponse;
+import deliveryfee.dto.BaseFeeUpdateRequest;
 import deliveryfee.entity.BaseFee;
 import deliveryfee.exception.ConflictException;
 import deliveryfee.exception.ResourceNotFoundException;
@@ -53,6 +54,27 @@ public class BaseFeeService {
         }
         BaseFee baseFee = baseFeeMapper.toEntity(request, Instant.now());
         return baseFeeMapper.toResponse(baseFeeRepository.save(baseFee));
+    }
+
+    /**
+     * Changes the amount of a current base fee. The existing fee is expired
+     * and a new version with the new amount is created, so the new fee has a new id.
+     *
+     * @param id id of the current base fee
+     * @param request new amount
+     * @return new version of the base fee
+     * @throws ResourceNotFoundException if there is no base fee with this id
+     * @throws ConflictException if the base fee is already expired
+     */
+    @Transactional
+    public BaseFeeResponse update(Long id, BaseFeeUpdateRequest request) {
+        BaseFee current = findEntity(id);
+        if (!current.isCurrent()) {
+            throw new ConflictException("Base fee with id " + id + " is expired and cannot be changed");
+        }
+        BaseFee next = current.replaceFee(request.fee(), Instant.now());
+        baseFeeRepository.save(current);
+        return baseFeeMapper.toResponse(baseFeeRepository.save(next));
     }
 
     /**

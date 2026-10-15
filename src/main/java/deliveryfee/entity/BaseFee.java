@@ -64,4 +64,31 @@ public class BaseFee {
     public void expire(Instant time) {
         this.validTo = time;
     }
+
+    /**
+     * Checks whether this fee is currently valid.
+     *
+     * @return true if the fee has not been expired
+     */
+    public boolean isCurrent() {
+        return validTo == null;
+    }
+
+    /**
+     * Expires this fee and creates its next version with a new amount.
+     * Both happen at the same moment, so there is no gap or overlap between versions.
+     *
+     * @param newFee new amount in euros
+     * @param time moment of the change
+     * @return new fee version, not yet saved
+     */
+    public BaseFee replaceFee(BigDecimal newFee, Instant time) {
+        expire(time);
+        return BaseFee.builder()
+                .city(city)
+                .vehicleType(vehicleType)
+                .fee(newFee)
+                .validFrom(time)
+                .build();
+    }
 }
