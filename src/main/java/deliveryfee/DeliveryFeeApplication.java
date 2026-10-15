@@ -10,5 +10,4 @@ public class DeliveryFeeApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(DeliveryFeeApplication.class, args);
 	}
-
 }
