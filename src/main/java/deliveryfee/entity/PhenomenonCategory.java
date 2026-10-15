@@ -2,7 +2,6 @@ package deliveryfee.entity;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 /**

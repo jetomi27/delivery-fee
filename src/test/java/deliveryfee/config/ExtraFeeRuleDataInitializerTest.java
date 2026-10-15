@@ -36,9 +36,10 @@ class ExtraFeeRuleDataInitializerTest {
     void run_emptyTable_insertsAllDefaultRules() {
         List<ExtraFeeRule> rules = runOnEmptyTable();
 
-        assertThat(rules).hasSize(18);
-        assertThat(rules).allMatch(rule -> rule.getValidTo() == null);
-        assertThat(rules).noneMatch(rule -> rule.getVehicleType() == VehicleType.CAR);
+        assertThat(rules)
+            .hasSize(18)
+            .allMatch(rule -> rule.getValidTo() == null)
+            .noneMatch(rule -> rule.getVehicleType() == VehicleType.CAR);
     }
 
     @Test
@@ -47,8 +48,9 @@ class ExtraFeeRuleDataInitializerTest {
                 .filter(rule -> rule.getType() == ExtraFeeType.WIND_SPEED)
                 .toList();
 
-        assertThat(windRules).hasSize(2);
-        assertThat(windRules).allMatch(rule -> rule.getVehicleType() == VehicleType.BIKE);
+        assertThat(windRules)
+            .hasSize(2)
+            .allMatch(rule -> rule.getVehicleType() == VehicleType.BIKE);
     }
 
     @Test
