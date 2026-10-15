@@ -1,9 +1,16 @@
 package deliveryfee.controller;
 
 import deliveryfee.dto.DeliveryFeeResponse;
+import deliveryfee.dto.ErrorResponse;
 import deliveryfee.entity.City;
 import deliveryfee.entity.VehicleType;
 import deliveryfee.service.DeliveryFeeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * REST endpoint for calculating courier delivery fees
  */
+@Tag(name = "Delivery fee", description = "Calculation of courier delivery fees")
 @RestController
 @RequestMapping("/api/delivery-fee")
 public class DeliveryFeeController {
@@ -34,6 +42,17 @@ public class DeliveryFeeController {
      *                 if given, rules and weather valid at that moment are used, otherwise the latest ones
      * @return calculated fee and warnings about missing weather data
      */
+    @Operation(
+            summary = "Calculate delivery fee",
+            description = "Total fee = regional base fee + weather extra fees. "
+                    + "Uses the latest weather data, or data valid at the given datetime.")
+    @ApiResponse(responseCode = "200", description = "Fee calculated")
+    @ApiResponse(responseCode = "400", description = "Missing or invalid parameter",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "404", description = "No base fee or weather data for the given time",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "422", description = "Usage of selected vehicle type is forbidden",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     @GetMapping
     public DeliveryFeeResponse getDeliveryFee(
             @RequestParam City city,
