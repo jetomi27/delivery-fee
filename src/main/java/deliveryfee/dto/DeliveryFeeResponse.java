@@ -15,6 +15,7 @@ import java.util.List;
  * @param fee total delivery fee in euros
  * @param warnings messages about missing weather data, empty if all data was available
  */
+@Schema(description = "Calculated delivery fee")
 public record DeliveryFeeResponse(
         @Schema(description = "Delivery city", example = "TARTU")
         City city,

@@ -4,6 +4,7 @@ import deliveryfee.entity.BaseFee;
 import deliveryfee.entity.City;
 import deliveryfee.entity.VehicleType;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,4 +23,7 @@ public interface BaseFeeRepository extends JpaRepository<BaseFee, Long> {
     Optional<BaseFee> findValidAt(@Param("city") City city,
                                   @Param("vehicleType") VehicleType vehicleType,
                                   @Param("time") Instant time);
+                                  
+    // returns all base fees that are currently valid
+    List<BaseFee> findAllByValidToIsNullOrderByCityAscVehicleTypeAsc();
 }
