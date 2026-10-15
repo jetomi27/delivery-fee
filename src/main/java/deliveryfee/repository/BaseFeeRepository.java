@@ -23,7 +23,10 @@ public interface BaseFeeRepository extends JpaRepository<BaseFee, Long> {
     Optional<BaseFee> findValidAt(@Param("city") City city,
                                   @Param("vehicleType") VehicleType vehicleType,
                                   @Param("time") Instant time);
-                                  
+
     // returns all base fees that are currently valid
     List<BaseFee> findAllByValidToIsNullOrderByCityAscVehicleTypeAsc();
+
+    // checks whether a currently valid base fee exists for the city and vehicle type
+    boolean existsByCityAndVehicleTypeAndValidToIsNull(City city, VehicleType vehicleType);
 }

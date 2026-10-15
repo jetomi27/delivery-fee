@@ -1,5 +1,6 @@
 package deliveryfee.controller;
 
+import deliveryfee.dto.BaseFeeRequest;
 import deliveryfee.dto.BaseFeeResponse;
 import deliveryfee.dto.ErrorResponse;
 import deliveryfee.service.BaseFeeService;
@@ -8,11 +9,18 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
 import java.util.List;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -53,5 +61,24 @@ public class BaseFeeController {
     @GetMapping("/{id}")
     public BaseFeeResponse getById(@PathVariable Long id) {
         return baseFeeService.getById(id);
+    }
+    
+    /**
+     * Creates a new base fee valid from now.
+     *
+     * @param request city, vehicle type and fee
+     * @return created base fee
+     */
+    @Operation(summary = "Create base fee",
+            description = "Creates a fee for a city and vehicle type that has no current fee. ")
+    @ApiResponse(responseCode = "201", description = "Base fee created")
+    @ApiResponse(responseCode = "400", description = "Invalid request body",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Current base fee already exists",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    public BaseFeeResponse create(@Valid @RequestBody BaseFeeRequest request) {
+        return baseFeeService.create(request);
     }
 }

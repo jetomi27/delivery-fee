@@ -1,7 +1,10 @@
 package deliveryfee.mapper;
 
+import deliveryfee.dto.BaseFeeRequest;
 import deliveryfee.dto.BaseFeeResponse;
 import deliveryfee.entity.BaseFee;
+
+import java.time.Instant;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
@@ -29,4 +32,13 @@ public interface BaseFeeMapper {
      * @return responses in the same order
      */
     List<BaseFeeResponse> toResponses(List<BaseFee> baseFees);
+
+    /**
+     * Creates a new base fee entity from a request.
+     *
+     * @param request requested city, vehicle type and fee
+     * @param validFrom moment from which the new fee is valid
+     * @return new entity, not yet saved
+     */
+    BaseFee toEntity(BaseFeeRequest request, Instant validFrom);
 }

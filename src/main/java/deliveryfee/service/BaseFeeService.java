@@ -1,9 +1,13 @@
 package deliveryfee.service;
 
+import deliveryfee.dto.BaseFeeRequest;
 import deliveryfee.dto.BaseFeeResponse;
 import deliveryfee.entity.BaseFee;
+import deliveryfee.exception.ConflictException;
 import deliveryfee.exception.ResourceNotFoundException;
 import deliveryfee.repository.BaseFeeRepository;
+
+import java.time.Instant;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +36,23 @@ public class BaseFeeService {
     public List<BaseFeeResponse> getCurrentFees() {
         return baseFeeMapper.toResponses(
                 baseFeeRepository.findAllByValidToIsNullOrderByCityAscVehicleTypeAsc());
+    }
+
+    /**
+     * Creates a new base fee valid from now.
+     *
+     * @param request city, vehicle type and fee
+     * @return created base fee
+     * @throws ConflictException if a current base fee already exists for this city and vehicle type
+     */
+    @Transactional
+    public BaseFeeResponse create(BaseFeeRequest request) {
+        if (baseFeeRepository.existsByCityAndVehicleTypeAndValidToIsNull(request.city(), request.vehicleType())) {
+            throw new ConflictException("Base fee for " + request.city() + " and " + request.vehicleType()
+                    + " already exists.");
+        }
+        BaseFee baseFee = baseFeeMapper.toEntity(request, Instant.now());
+        return baseFeeMapper.toResponse(baseFeeRepository.save(baseFee));
     }
 
     /**
