@@ -18,6 +18,7 @@ import deliveryfee.repository.BaseFeeRepository;
 import deliveryfee.repository.ExtraFeeRuleRepository;
 import deliveryfee.repository.WeatherObservationRepository;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -133,6 +134,29 @@ class DeliveryFeeServiceTest {
                 .hasMessageContaining("No weather data");
     }
 
+    @Test
+    void calculate_oldWeatherData_addsWarning() {
+        givenBaseFee(City.TARTU, VehicleType.CAR, "3.50");
+        givenWeather(City.TARTU, 5.0, 3.0, "Overcast", TIME.minus(Duration.ofHours(3)));
+        givenRules(VehicleType.CAR, List.of());
+
+        DeliveryFeeResponse result = deliveryFeeService.calculate(City.TARTU, VehicleType.CAR, TIME);
+
+        assertThat(result.warnings()).singleElement().asString().contains("older than 2 hours");
+    }
+
+    @Test
+    void calculate_weatherExactly2HoursOld_noWarning() {
+        givenBaseFee(City.TARTU, VehicleType.CAR, "3.50");
+        givenWeather(City.TARTU, 5.0, 3.0, "Overcast", TIME.minus(Duration.ofHours(2)));
+        givenRules(VehicleType.CAR, List.of());
+
+        DeliveryFeeResponse result = deliveryFeeService.calculate(City.TARTU, VehicleType.CAR, TIME);
+
+        assertThat(result.warnings()).isEmpty();
+    }
+
+    
     // --- test data helpers ---
 
     private void givenBaseFee(City city, VehicleType vehicleType, String fee) {
@@ -146,12 +170,16 @@ class DeliveryFeeServiceTest {
     }
 
     private void givenWeather(City city, Double temperature, Double windSpeed, String phenomenon) {
+        givenWeather(city, temperature, windSpeed, phenomenon, TIME.minusSeconds(600));
+    }
+
+    private void givenWeather(City city, Double temperature, Double windSpeed, String phenomenon, Instant observedAt) {
         WeatherObservation weather = WeatherObservation.builder()
                 .stationName(city.getStationName())
                 .airTemperature(temperature)
                 .windSpeed(windSpeed)
                 .phenomenon(phenomenon)
-                .observedAt(TIME.minusSeconds(600))
+                .observedAt(observedAt)
                 .build();
         when(weatherObservationRepository.findFirstByStationNameAndObservedAtLessThanEqualOrderByObservedAtDesc(
                 city.getStationName(), TIME)).thenReturn(Optional.of(weather));

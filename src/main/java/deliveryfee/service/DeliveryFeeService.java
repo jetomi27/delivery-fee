@@ -13,6 +13,7 @@ import deliveryfee.repository.BaseFeeRepository;
 import deliveryfee.repository.ExtraFeeRuleRepository;
 import deliveryfee.repository.WeatherObservationRepository;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class DeliveryFeeService {
+
+    // Weather data older than this compared to the calculation time produces a warning
+    private static final Duration MAX_WEATHER_AGE = Duration.ofHours(2);
 
     private final BaseFeeRepository baseFeeRepository;
     private final WeatherObservationRepository weatherObservationRepository;
@@ -54,7 +58,7 @@ public class DeliveryFeeService {
         List<ExtraFeeRule> rules = extraFeeRuleRepository.findValidAt(vehicleType, time);
 
         BigDecimal extraFees = calculateExtraFees(rules, weather);
-        List<String> warnings = collectWarnings(rules, weather);
+        List<String> warnings = collectWarnings(rules, weather, time);
         return new DeliveryFeeResponse(city, vehicleType, baseFee.add(extraFees), warnings);
     }
 
@@ -87,8 +91,12 @@ public class DeliveryFeeService {
         return total;
     }
 
-    private List<String> collectWarnings(List<ExtraFeeRule> rules, WeatherObservation weather) {
+    private List<String> collectWarnings(List<ExtraFeeRule> rules, WeatherObservation weather, Instant time) {
         List<String> warnings = new ArrayList<>();
+        if (Duration.between(weather.getObservedAt(), time).compareTo(MAX_WEATHER_AGE) > 0) {
+            warnings.add("Weather data is older than " + MAX_WEATHER_AGE.toHours()
+                    + " hours, last observation at " + weather.getObservedAt());
+        }
         if (hasRuleOfType(rules, ExtraFeeType.AIR_TEMPERATURE) && weather.getAirTemperature() == null) {
             warnings.add("Air temperature data is missing, air temperature rules were not applied");
         }
