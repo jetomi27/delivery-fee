@@ -1,7 +1,10 @@
 package deliveryfee.mapper;
 
+import deliveryfee.dto.ExtraFeeRuleRequest;
 import deliveryfee.dto.ExtraFeeRuleResponse;
 import deliveryfee.entity.ExtraFeeRule;
+
+import java.time.Instant;
 import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingConstants;
@@ -29,4 +32,13 @@ public interface ExtraFeeRuleMapper {
      * @return responses in the same order
      */
     List<ExtraFeeRuleResponse> toResponses(List<ExtraFeeRule> rules);
+
+    /**
+     * Creates a new extra fee rule entity from a request.
+     *
+     * @param request rule parameters
+     * @param validFrom moment from which the new rule is valid
+     * @return new entity, not yet saved
+     */
+    ExtraFeeRule toEntity(ExtraFeeRuleRequest request, Instant validFrom);
 }

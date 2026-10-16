@@ -1,11 +1,17 @@
 package deliveryfee.service;
 
+import deliveryfee.dto.ExtraFeeRuleRequest;
 import deliveryfee.dto.ExtraFeeRuleResponse;
 import deliveryfee.entity.ExtraFeeRule;
+import deliveryfee.exception.ConflictException;
 import deliveryfee.exception.ResourceNotFoundException;
 import deliveryfee.mapper.ExtraFeeRuleMapper;
 import deliveryfee.repository.ExtraFeeRuleRepository;
+
+import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,5 +56,30 @@ public class ExtraFeeRuleService {
     private ExtraFeeRule findEntity(Long id) {
         return extraFeeRuleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Extra fee rule with id " + id + " not found"));
+    }
+
+    /**
+     * Creates a new extra fee rule valid from now.
+     *
+     * @param request rule parameters
+     * @return created rule
+     * @throws ConflictException if the rule overlaps with a current rule of the same type and vehicle type
+     */
+    @Transactional
+    public ExtraFeeRuleResponse create(ExtraFeeRuleRequest request) {
+        ExtraFeeRule rule = extraFeeRuleMapper.toEntity(request, Instant.now());
+        checkNoOverlap(rule, null);
+        return extraFeeRuleMapper.toResponse(extraFeeRuleRepository.save(rule));
+    }
+
+    private void checkNoOverlap(ExtraFeeRule rule, Long replacedRuleId) {
+        extraFeeRuleRepository.findAllByTypeAndVehicleTypeAndValidToIsNull(rule.getType(), rule.getVehicleType())
+                .stream()
+                .filter(existing -> !Objects.equals(existing.getId(), replacedRuleId))
+                .filter(rule::overlaps)
+                .findFirst()
+                .ifPresent(existing -> {
+                    throw new ConflictException("Rule overlaps with current rule with id " + existing.getId());
+            });
     }
 }

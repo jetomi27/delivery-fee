@@ -1,6 +1,7 @@
 package deliveryfee.controller;
 
 import deliveryfee.dto.ErrorResponse;
+import deliveryfee.dto.ExtraFeeRuleRequest;
 import deliveryfee.dto.ExtraFeeRuleResponse;
 import deliveryfee.service.ExtraFeeRuleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,10 +9,18 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
 import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -52,5 +61,26 @@ public class ExtraFeeRuleController {
     @GetMapping("/{id}")
     public ExtraFeeRuleResponse getById(@PathVariable Long id) {
         return extraFeeRuleService.getById(id);
+    }
+
+    /**
+     * Creates a new extra fee rule valid from now.
+     *
+     * @param request rule parameters
+     * @return created rule
+     */
+    @Operation(summary = "Create extra fee rule",
+            description = "Temperature and wind rules need a range, phenomenon rules need a category. "
+                    + "A forbidding rule has no fee. The rule must not overlap with current rules "
+                    + "of the same type and vehicle type.")
+    @ApiResponse(responseCode = "201", description = "Rule created")
+    @ApiResponse(responseCode = "400", description = "Invalid or inconsistent rule",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Rule overlaps with a current rule",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public ExtraFeeRuleResponse create(@Valid @RequestBody ExtraFeeRuleRequest request) {
+        return extraFeeRuleService.create(request);
     }
 }

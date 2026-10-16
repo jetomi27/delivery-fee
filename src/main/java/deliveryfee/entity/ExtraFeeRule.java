@@ -115,4 +115,36 @@ public class ExtraFeeRule {
                 || (maxInclusive ? value <= maxValue : value < maxValue);
         return aboveMin && belowMax;
     }
+
+    /**
+     * Checks whether this rule could apply to the same weather as another rule
+     * of the same type and vehicle type. Overlapping rules would charge the extra fee twice.
+     *
+     * @param other another rule
+     * @return true if both rules can match the same weather observation
+     */
+    public boolean overlaps(ExtraFeeRule other) {
+        if (type != other.type || vehicleType != other.vehicleType) {
+            return false;
+        }
+        if (type == ExtraFeeType.WEATHER_PHENOMENON) {
+            return phenomenonCategory == other.phenomenonCategory;
+        }
+        // Ranges A (this) and B (other) overlap when both are true:
+        //   A starts before B ends  -> A is not entirely to the right of B
+        //   B starts before A ends  -> A is not entirely to the left of B
+        return startsBeforeEnd(minValue, minInclusive, other.maxValue, other.maxInclusive)
+                && startsBeforeEnd(other.minValue, other.minInclusive, maxValue, maxInclusive);
+    }
+
+    private static boolean startsBeforeEnd(Double start, boolean startInclusive,
+                                        Double end, boolean endInclusive) {
+        if (start == null || end == null) {
+            return true;
+        }
+        if (start < end) {
+            return true;
+        }
+        return start.equals(end) && startInclusive && endInclusive;
+    }
 }

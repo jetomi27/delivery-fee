@@ -1,6 +1,7 @@
 package deliveryfee.repository;
 
 import deliveryfee.entity.ExtraFeeRule;
+import deliveryfee.entity.ExtraFeeType;
 import deliveryfee.entity.VehicleType;
 import java.time.Instant;
 import java.util.List;
@@ -22,4 +23,7 @@ public interface ExtraFeeRuleRepository extends JpaRepository<ExtraFeeRule, Long
 
     // returns all extra fee rules that are currently valid
     List<ExtraFeeRule> findAllByValidToIsNullOrderByVehicleTypeAscTypeAsc();
+
+    // returns currently valid rules of the given type for the vehicle type
+    List<ExtraFeeRule> findAllByTypeAndVehicleTypeAndValidToIsNull(ExtraFeeType type, VehicleType vehicleType);
 }
