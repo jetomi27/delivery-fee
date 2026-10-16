@@ -1,6 +1,5 @@
 package deliveryfee.dto;
 
-import deliveryfee.entity.BaseFee;
 import deliveryfee.entity.City;
 import deliveryfee.entity.VehicleType;
 import io.swagger.v3.oas.annotations.media.Schema;

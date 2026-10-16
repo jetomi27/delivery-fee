@@ -19,4 +19,7 @@ public interface ExtraFeeRuleRepository extends JpaRepository<ExtraFeeRule, Long
             """)
     List<ExtraFeeRule> findValidAt(@Param("vehicleType") VehicleType vehicleType,
                                    @Param("time") Instant time);
+
+    // returns all extra fee rules that are currently valid
+    List<ExtraFeeRule> findAllByValidToIsNullOrderByVehicleTypeAscTypeAsc();
 }
