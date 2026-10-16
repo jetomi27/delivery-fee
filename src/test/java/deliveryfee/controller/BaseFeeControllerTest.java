@@ -109,6 +109,45 @@ class BaseFeeControllerTest {
     }
 
     @Test
+    void create_textInsteadOfNumber_returns400WithFieldName() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"city": "TARTU", "vehicleType": "BIKE", "fee": "abc"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Invalid value 'abc' for field 'fee'"));
+    }
+
+    @Test
+    void create_objectInsteadOfNumber_returns400WithFieldName() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"city": "TARTU", "vehicleType": "BIKE", "fee": {"amount": 2.5}}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Missing or invalid value for field 'fee'"));
+    }
+
+    @Test
+    void create_brokenJson_returns400() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"city\": \"TARTU\", "))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Request body is missing or has invalid format"));
+    }
+
+    @Test
+    void create_emptyBody_returns400() throws Exception {
+        mockMvc.perform(post(URL)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Request body is missing or has invalid format"));
+}
+
+    @Test
     void create_currentFeeExists_returns409() throws Exception {
         when(baseFeeService.create(any(BaseFeeRequest.class)))
                 .thenThrow(new ConflictException("Base fee for TARTU and BIKE already exists, use PUT to change it"));

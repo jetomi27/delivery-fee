@@ -1,5 +1,7 @@
 package deliveryfee.exception;
 
+import tools.jackson.databind.exc.InvalidFormatException;
+import tools.jackson.databind.exc.MismatchedInputException;
 import deliveryfee.dto.ErrorResponse;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -8,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -47,6 +50,28 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handleUnreadableBody(HttpMessageNotReadableException e) {
+        Throwable cause = e.getMostSpecificCause();
+
+        // Value has a wrong type, e.g. unknown enum value "MAARDU" for city
+        if (cause instanceof InvalidFormatException invalidFormat
+                && !invalidFormat.getPath().isEmpty()) {
+            String field = invalidFormat.getPath().getLast().getPropertyName();
+            String message = "Invalid value '" + invalidFormat.getValue() + "' for field '" + field + "'";
+            Class<?> type = invalidFormat.getTargetType();
+            if (type != null && type.isEnum()) {
+                message += ". Allowed values: " + Arrays.toString(type.getEnumConstants());
+            }
+            return build(HttpStatus.BAD_REQUEST, message);
+        }
+
+        // Field could not be read for another reason, e.g. text instead of a number
+        if (cause instanceof MismatchedInputException mismatched
+                && !mismatched.getPath().isEmpty()) {
+            String field = mismatched.getPath().getLast().getPropertyName();
+            return build(HttpStatus.BAD_REQUEST, "Missing or invalid value for field '" + field + "'");
+        }
+
+        // Broken JSON or no body at all
         return build(HttpStatus.BAD_REQUEST, "Request body is missing or has invalid format");
     }
 
@@ -73,6 +98,11 @@ public class GlobalExceptionHandler {
             message += ". Allowed values: " + Arrays.toString(type.getEnumConstants());
         }
         return build(HttpStatus.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException e) {
+        return build(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Content type must be application/json");
     }
 
     @ExceptionHandler(Exception.class)

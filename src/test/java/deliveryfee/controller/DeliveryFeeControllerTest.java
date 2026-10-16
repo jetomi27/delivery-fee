@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -116,5 +117,12 @@ class DeliveryFeeControllerTest {
         mockMvc.perform(get(URL).param("city", "TARTU").param("vehicleType", "BIKE"))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.message").value("Internal server error"));
+    }
+
+    @Test
+    void unknownEndpoint_returns404() throws Exception {
+        mockMvc.perform(get("/api/delivery-feee"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value(containsString("Endpoint not found")));
     }
 }
