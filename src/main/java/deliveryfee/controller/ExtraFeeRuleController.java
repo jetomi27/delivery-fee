@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -107,5 +108,24 @@ public class ExtraFeeRuleController {
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ExtraFeeRuleResponse update(@PathVariable Long id, @Valid @RequestBody ExtraFeeRuleUpdateRequest request) {
         return extraFeeRuleService.update(id, request);
+    }
+
+    /**
+     * Ends the validity of a current extra fee rule.
+     *
+     * @param id id of the current rule
+     */
+    @Operation(summary = "Delete extra fee rule",
+            description = "Expires the rule instead of removing it, so calculations "
+                    + "for earlier times are not affected. From now on the rule is no longer applied.")
+    @ApiResponse(responseCode = "204", description = "Rule expired")
+    @ApiResponse(responseCode = "404", description = "Rule not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Rule is already expired",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        extraFeeRuleService.delete(id);
     }
 }

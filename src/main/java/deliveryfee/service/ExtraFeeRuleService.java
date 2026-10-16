@@ -114,6 +114,23 @@ public class ExtraFeeRuleService {
         return extraFeeRuleMapper.toResponse(extraFeeRuleRepository.save(next));
     }
 
+    /**
+     * Ends the validity of a current extra fee rule.
+     *
+     * @param id id of the current rule
+     * @throws ResourceNotFoundException if there is no rule with this id
+     * @throws ConflictException if the rule is already expired
+     */
+    @Transactional
+    public void delete(Long id) {
+        ExtraFeeRule current = findEntity(id);
+        if (!current.isCurrent()) {
+            throw new ConflictException("Extra fee rule with id " + id + " is already expired");
+        }
+        current.expire(Instant.now());
+        extraFeeRuleRepository.save(current);
+    }
+
     private void checkBoundsMatchType(ExtraFeeType type, ExtraFeeRuleUpdateRequest request) {
         boolean hasBounds = request.minValue() != null || request.maxValue() != null;
         if (type == ExtraFeeType.WEATHER_PHENOMENON && hasBounds) {
