@@ -2,8 +2,11 @@ package deliveryfee.service;
 
 import deliveryfee.dto.ExtraFeeRuleRequest;
 import deliveryfee.dto.ExtraFeeRuleResponse;
+import deliveryfee.dto.ExtraFeeRuleUpdateRequest;
 import deliveryfee.entity.ExtraFeeRule;
+import deliveryfee.entity.ExtraFeeType;
 import deliveryfee.exception.ConflictException;
+import deliveryfee.exception.InvalidRequestException;
 import deliveryfee.exception.ResourceNotFoundException;
 import deliveryfee.mapper.ExtraFeeRuleMapper;
 import deliveryfee.repository.ExtraFeeRuleRepository;
@@ -70,6 +73,55 @@ public class ExtraFeeRuleService {
         ExtraFeeRule rule = extraFeeRuleMapper.toEntity(request, Instant.now());
         checkNoOverlap(rule, null);
         return extraFeeRuleMapper.toResponse(extraFeeRuleRepository.save(rule));
+    }
+
+    /**
+     * Changes a current extra fee rule. The existing rule is expired and a new version
+     * with the new values is created, so the new rule has a new id.
+     *
+     * @param id id of the current rule
+     * @param request new bounds, fee and forbidden flag
+     * @return new version of the rule
+     * @throws ResourceNotFoundException if there is no rule with this id
+     * @throws ConflictException if the rule is expired or the new version overlaps with another current rule
+     * @throws InvalidRequestException if the bounds do not fit the rule type
+     */
+    @Transactional
+    public ExtraFeeRuleResponse update(Long id, ExtraFeeRuleUpdateRequest request) {
+        ExtraFeeRule current = findEntity(id);
+        if (!current.isCurrent()) {
+            throw new ConflictException("Extra fee rule with id " + id + " is expired and cannot be changed");
+        }
+        checkBoundsMatchType(current.getType(), request);
+
+        Instant now = Instant.now();
+        ExtraFeeRule next = ExtraFeeRule.builder()
+                .type(current.getType())
+                .vehicleType(current.getVehicleType())
+                .phenomenonCategory(current.getPhenomenonCategory())
+                .minValue(request.minValue())
+                .minInclusive(request.minInclusive())
+                .maxValue(request.maxValue())
+                .maxInclusive(request.maxInclusive())
+                .fee(request.fee())
+                .forbidden(request.forbidden())
+                .validFrom(now)
+                .build();
+        checkNoOverlap(next, id);
+
+        current.expire(now);
+        extraFeeRuleRepository.save(current);
+        return extraFeeRuleMapper.toResponse(extraFeeRuleRepository.save(next));
+    }
+
+    private void checkBoundsMatchType(ExtraFeeType type, ExtraFeeRuleUpdateRequest request) {
+        boolean hasBounds = request.minValue() != null || request.maxValue() != null;
+        if (type == ExtraFeeType.WEATHER_PHENOMENON && hasBounds) {
+            throw new InvalidRequestException("Phenomenon rules have no range bounds");
+        }
+        if (type != ExtraFeeType.WEATHER_PHENOMENON && !hasBounds) {
+            throw new InvalidRequestException("Temperature and wind rules need at least one range bound");
+        }
     }
 
     private void checkNoOverlap(ExtraFeeRule rule, Long replacedRuleId) {

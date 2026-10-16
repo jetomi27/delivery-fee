@@ -50,6 +50,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "Request body is missing or has invalid format");
     }
 
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRequest(InvalidRequestException e) {
+        return build(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException e) {
         return build(HttpStatus.NOT_FOUND, "Endpoint not found: /" + e.getResourcePath());

@@ -117,6 +117,15 @@ public class ExtraFeeRule {
     }
 
     /**
+     * Checks whether this rule is currently valid.
+     *
+     * @return true if the rule has not been expired
+     */
+    public boolean isCurrent() {
+        return validTo == null;
+    }
+
+    /**
      * Checks whether this rule could apply to the same weather as another rule
      * of the same type and vehicle type. Overlapping rules would charge the extra fee twice.
      *
@@ -146,5 +155,5 @@ public class ExtraFeeRule {
             return true;
         }
         return start.equals(end) && startInclusive && endInclusive;
-    }
+    }  
 }

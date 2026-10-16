@@ -3,6 +3,7 @@ package deliveryfee.controller;
 import deliveryfee.dto.ErrorResponse;
 import deliveryfee.dto.ExtraFeeRuleRequest;
 import deliveryfee.dto.ExtraFeeRuleResponse;
+import deliveryfee.dto.ExtraFeeRuleUpdateRequest;
 import deliveryfee.service.ExtraFeeRuleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -18,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -82,5 +84,28 @@ public class ExtraFeeRuleController {
     @ResponseStatus(HttpStatus.CREATED)
     public ExtraFeeRuleResponse create(@Valid @RequestBody ExtraFeeRuleRequest request) {
         return extraFeeRuleService.create(request);
+    }
+
+    /**
+     * Changes a current extra fee rule.
+     *
+     * @param id id of the current rule
+     * @param request new bounds, fee and forbidden flag
+     * @return new version of the rule
+     */
+    @Operation(summary = "Change extra fee rule",
+            description = "Expires the current rule and creates a new version with the new values. "
+                    + "Rule type, vehicle type and phenomenon category stay the same. "
+                    + "The response contains the new version with a new id.")
+    @ApiResponse(responseCode = "200", description = "Rule changed")
+    @ApiResponse(responseCode = "400", description = "Invalid values or bounds do not fit the rule type",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Rule not found",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Rule is expired or overlaps with another current rule",
+            content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ExtraFeeRuleResponse update(@PathVariable Long id, @Valid @RequestBody ExtraFeeRuleUpdateRequest request) {
+        return extraFeeRuleService.update(id, request);
     }
 }
